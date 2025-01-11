@@ -541,6 +541,14 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jbtnExecuteActionPerformed"/>
                   </Events>
                 </Component>
+                <Component class="javax.swing.JButton" name="jBtnScan">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Escanear"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jBtnScanActionPerformed"/>
+                  </Events>
+                </Component>
               </SubComponents>
             </Container>
           </SubComponents>

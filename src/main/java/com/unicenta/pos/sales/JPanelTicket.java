@@ -31,7 +31,11 @@ import com.unicenta.beans.JNumberPop;
 import com.unicenta.data.gui.ComboBoxValModel;
 import com.unicenta.data.gui.ListKeyed;
 import com.unicenta.data.gui.MessageInf;
+import com.unicenta.data.loader.Datas;
 import com.unicenta.data.loader.SentenceList;
+import com.unicenta.data.loader.SerializerReadBasic;
+import com.unicenta.data.loader.SerializerWriteString;
+import com.unicenta.data.loader.StaticSentence;
 import com.unicenta.plugins.Application;
 import com.unicenta.pos.catalog.JCatalog;
 import com.unicenta.pos.customers.*;
@@ -594,6 +598,24 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         resetSouthComponent();
       }
     } else {
+        
+        if(m_oTicket != null){
+            //id cliente
+            String custId = m_oTicket.getCustomerId();
+            
+            //consulta total de tickets
+            try{
+                int visits = getMonthlyTickets(custId);
+                if(visits>=2) JOptionPane.showMessageDialog(null, "El cliente superó sus dos visitas por mes", "Atención", JOptionPane.WARNING_MESSAGE);
+                m_jTicketId.setText(m_oTicket.getName(m_oTicketExt) + " | Visitas: " + visits);
+            }catch(BasicException be){
+                m_jTicketId.setText(m_oTicket.getName(m_oTicketExt) + " (error visitas)");
+            }
+            
+        }else{
+            m_jTicketId.setText(m_oTicket.getName(m_oTicketExt ) + "(sin cliente)");
+        }
+        
       if (m_oTicket.getTicketType() == TicketInfo.RECEIPT_REFUND) {
         m_jEditLine.setVisible(false);
         m_jList.setVisible(false);
@@ -604,7 +626,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
                 .getProductTaxCategoryID(), m_oTicket.getCustomer()));
       });
 
-      m_jTicketId.setText(m_oTicket.getName(m_oTicketExt));
+      //m_jTicketId.setText(m_oTicket.getName(m_oTicketExt));
       m_ticketlines.clearTicketLines();
 
       for (int i = 0; i < m_oTicket.getLinesCount(); i++) {
@@ -3510,6 +3532,25 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         log.error(ex.getMessage());
       }
     }
+  }
+  
+  private int getMonthlyTickets(String customerId) throws BasicException{
+      Object[] record = (Object[]) new StaticSentence(
+        m_App.getSession(), 
+        "SELECT COUNT(*) " +
+        "FROM tickets T " +
+        "JOIN receipts R ON R.ID = T.ID " +
+        "WHERE T.CUSTOMER = ? " +
+        "  AND MONTH(R.DATENEW) = MONTH(CURRENT_DATE()) " +
+        "  AND YEAR(R.DATENEW) = YEAR(CURRENT_DATE())",
+        SerializerWriteString.INSTANCE,
+        new SerializerReadBasic(new Datas[] { Datas.INT })
+    ).find(customerId);
+
+    if (record != null && record[0] != null) {
+        return ((Integer) record[0]);
+    }
+    return 0;
   }
 
 }
