@@ -25,6 +25,17 @@ import com.unicenta.pos.util.RoundUtils;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import javax.swing.JOptionPane;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 /**
  *
@@ -102,6 +113,12 @@ public class JPaymentDebt extends javax.swing.JPanel implements JPaymentInterfac
      */
     @Override
     public PaymentInfo executePayment() {
+        
+        String nCl = m_jName.getText();
+        String nPoints = m_jMoneyEuros.getText();
+        
+        JOptionPane.showMessageDialog(null, descontarPuntos(nCl, nPoints));
+        
         return new PaymentInfoTicket(m_dPaid, "debt");
     }
 
@@ -373,6 +390,91 @@ public class JPaymentDebt extends javax.swing.JPanel implements JPaymentInterfac
         // TODO add your handling code here:
     }//GEN-LAST:event_m_jKeysActionPerformed
 
+    public static String descontarPuntos(String cardNumber, String Puntos) {
+
+    String result = "";
+    try {
+        // URL del API
+        URL url = new URL("https://api.clienttoolbox.com");
+
+        // Crear la conexión HTTP
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+        connection.setDoOutput(true);
+
+        // Crear los datos del formulario para descontar puntos
+        String formData = String.format(
+            "user_id=%s&user_password=%s&type=%s&account_id=%s&card_number=%s&campaign_id=%s&reward_to_redeem=%s", 
+            "ALLAN", 
+            "09ccbd0ba216106cc143c32fa7d9db6a8e6ef42d", 
+            "redeem",
+            "KOSHERWALLET",
+            cardNumber, 
+            "7685835365406355", 
+           Puntos
+        );
+
+        // Envío de datos
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = formData.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+
+        // Verificar el código de estado de la respuesta
+        int statusCode = connection.getResponseCode();
+        if (statusCode != HttpURLConnection.HTTP_OK) {
+            return "Error: El servidor devolvió el código " + statusCode;
+        }
+
+        // Leer la respuesta del servidor
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            result = response.toString();
+
+            // Analizar el resultado (puedes adaptarlo según el formato esperado)
+            return parseXMLForTransactionResult(result);
+        }
+
+    } catch (java.net.SocketTimeoutException e) {
+        result = "Error: Tiempo de espera excedido al conectar con el API.";
+    } catch (java.io.IOException e) {
+        result = "Error: No se pudo establecer conexión con el servidor.";
+    } catch (Exception e) {
+        result = "Error inesperado: " + e.getMessage();
+    }
+
+    return result;
+}
+
+// Método para analizar el resultado de la operación de descuento
+private static String parseXMLForTransactionResult(String xmlResponse) {
+    try {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new java.io.ByteArrayInputStream(xmlResponse.getBytes(StandardCharsets.UTF_8)));
+
+        // Obtener el valor del nodo <response>
+        NodeList statusNodes = document.getElementsByTagName("response");
+        if (statusNodes.getLength() > 0) {
+            String status = statusNodes.item(0).getTextContent();
+            return "Transacción exitosa.";
+        } else {
+            return "Error: No se encontró el nodo <response> en la respuesta.";
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "Error al procesar el XML: " + e.getMessage();
+    }
+}
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;

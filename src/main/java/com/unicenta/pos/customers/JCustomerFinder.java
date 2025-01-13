@@ -594,6 +594,10 @@ public class JCustomerFinder extends javax.swing.JDialog implements EditorCreato
         jbtnExecute.getAccessibleContext().setAccessibleDescription("");
 
         jBtnScan.setText("Escanear");
+        jBtnScan.setMaximumSize(new java.awt.Dimension(83, 32));
+        jBtnScan.setMinimumSize(new java.awt.Dimension(83, 32));
+        jBtnScan.setName(""); // NOI18N
+        jBtnScan.setPreferredSize(new java.awt.Dimension(110, 45));
         jBtnScan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jBtnScanActionPerformed(evt);
@@ -687,7 +691,7 @@ private void jbtnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIR
         cleanSearch(); 
         
         //captura del codigo de barras
-        String b = JOptionPane.showInputDialog(null, "Escanea codigo", "Escanee", JOptionPane.QUESTION_MESSAGE);
+        String b = JOptionPane.showInputDialog(null, "Escanea código", "Escanee", JOptionPane.QUESTION_MESSAGE);
         m_jtxtSearchKey.setText(b);
         m_ReturnCustomer=null;
         executeSearch();        

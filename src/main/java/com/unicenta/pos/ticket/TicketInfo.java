@@ -80,6 +80,12 @@ public final class TicketInfo implements SerializableRead, Externalizable {
     private int ticketstatus;
 
     private static String Hostname;
+    
+    
+    //variables Lemazon
+    private int visitasCliente = -1;
+    private String puntosCliente = "0.0";
+    private Boolean clienteValidado =  false;
 
     public static void setHostname(String name) {
         Hostname=name;
@@ -248,7 +254,7 @@ public final class TicketInfo implements SerializableRead, Externalizable {
 
         String nameprop = getProperty("name"); 
         if (nameprop != null) {
-            name.add(nameprop);            
+            name.add(nameprop);
         }
         
         if (m_User != null) {
@@ -265,9 +271,22 @@ public final class TicketInfo implements SerializableRead, Externalizable {
         } else {
             name.add(info.toString());            
         }
-
+        
         if (m_Customer != null) {        
             name.add(m_Customer.getName());            
+        }
+        
+        if(clienteValidado){
+        
+            if(visitasCliente<0){
+                name.add("Cliente inexistente.");
+            }else{
+                name.add("Visitas: " + visitasCliente);
+            }
+            
+            name.add("Puntos: " + puntosCliente);
+        }else{
+            name.add("No se ha validado el cliente.");
         }
 
         return org.apache.commons.lang.StringUtils.join(name, " - ");        
@@ -388,6 +407,32 @@ public final class TicketInfo implements SerializableRead, Externalizable {
     public int getLinesCount() {
         return m_aLines.size();
     }
+
+    public int getVisitasCliente() {
+        return visitasCliente;
+    }
+
+    public void setVisitasCliente(int visitasCliente) {
+        this.visitasCliente = visitasCliente;
+    }
+
+    public String getPuntosCliente() {
+        return puntosCliente;
+    }
+
+    public void setPuntosCliente(String puntosCliente) {
+        this.puntosCliente = puntosCliente;
+    }
+
+    public Boolean getClienteValidado() {
+        return clienteValidado;
+    }
+
+    public void setClienteValidado(Boolean clienteValidado) {
+        this.clienteValidado = clienteValidado;
+    }
+    
+    
     
     public double getArticlesCount() {
         double dArticles = 0.0;
